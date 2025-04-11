@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -20,6 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter; // Injeção do filtro JWT
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -36,18 +38,19 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/clientes/**").hasAnyRole("VENDEDOR", "GERENTE", "ADMIN")
-                                .requestMatchers("/api/contatos/**").hasAnyRole("VENDEDOR", "GERENTE", "ADMIN")
-                                .requestMatchers("/api/oportunidades/**").hasAnyRole("VENDEDOR", "GERENTE", "ADMIN")
-                                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-                                .anyRequest().authenticated()
-                );
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/api/clientes/**").hasAnyRole("VENDEDOR", "GERENTE", "ADMIN")
+                        .requestMatchers("/api/contatos/**").hasAnyRole("VENDEDOR", "GERENTE", "ADMIN")
+                        .requestMatchers("/api/oportunidades/**").hasAnyRole("VENDEDOR", "GERENTE", "ADMIN")
+                        .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                // Adiciona o filtro JWT antes do filtro padrão de autenticação
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // Para permitir acesso ao console H2 (somente para desenvolvimento)
+        // Permite acesso ao console H2 (útil para desenvolvimento)
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
 
         return http.build();

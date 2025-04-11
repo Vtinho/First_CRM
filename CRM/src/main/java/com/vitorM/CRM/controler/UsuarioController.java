@@ -26,19 +26,21 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.listarTodos());
     }
 
+    /*
     @GetMapping("/paginado")
     public ResponseEntity<Page<UsuarioDTO>> listarPaginado(
             @PageableDefault(size = 10, sort = "nome") Pageable pageable) {
         return ResponseEntity.ok(usuarioService.listarPaginado(pageable));
     }
+    */
 
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.buscarPorId(id));
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UsuarioDTO> buscarPorEmail(@PathVariable String email) {
+    @GetMapping("/por-email")
+    public ResponseEntity<UsuarioDTO> buscarPorEmail(@RequestParam String email) {
         return ResponseEntity.ok(usuarioService.buscarPorEmail(email));
     }
 
@@ -60,8 +62,11 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+
+    /*
     @GetMapping("/oportunidades/{usuarioId}")
     public ResponseEntity<List<OportunidadeDTO>> listarOportunidadesPorUsuario(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(usuarioService.listarOportunidadesPorUsuario(usuarioId));
     }
+    */
 }

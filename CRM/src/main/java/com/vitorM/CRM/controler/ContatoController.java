@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -27,7 +28,7 @@ public class ContatoController {
 
     @GetMapping("/paginado")
     public ResponseEntity<Page<ContatoDTO>> listarPaginado(
-            @PageableDefault(size = 10, sort = "nome") Pageable pageable) {
+            @PageableDefault(size = 10, sort = "dataContato") Pageable pageable) {
         return ResponseEntity.ok(contatoService.listarPaginado(pageable));
     }
 
@@ -37,13 +38,24 @@ public class ContatoController {
     }
 
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<List<ContatoDTO>> buscarPorCliente(@PathVariable Long clienteId) {
-        return ResponseEntity.ok(contatoService.buscarPorCliente(clienteId));
+    public ResponseEntity<Page<ContatoDTO>> buscarPorCliente(
+            @PathVariable Long clienteId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(contatoService.buscarPorCliente(clienteId, pageable));
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<ContatoDTO> buscarPorEmail(@PathVariable String email) {
-        return ResponseEntity.ok(contatoService.(email));
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<ContatoDTO>> buscarPorUsuario(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(contatoService.buscarPorUsuario(usuarioId));
+    }
+
+    @GetMapping("/periodo")
+    public ResponseEntity<List<ContatoDTO>> buscarPorPeriodo(
+            @RequestParam("inicio") String inicio,
+            @RequestParam("fim") String fim) {
+        LocalDateTime dataInicio = LocalDateTime.parse(inicio);
+        LocalDateTime dataFim = LocalDateTime.parse(fim);
+        return ResponseEntity.ok(contatoService.buscarPorPeriodo(dataInicio, dataFim));
     }
 
     @PostMapping

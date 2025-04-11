@@ -1,12 +1,17 @@
 package com.vitorM.CRM.service;
 
+import com.vitorM.CRM.repository.OportunidadeRepository;
+import com.vitorM.CRM.dto.OportunidadeDTO;
 import com.vitorM.CRM.dto.UsuarioDTO;
 import com.vitorM.CRM.exception.RecursoJaExisteException;
 import com.vitorM.CRM.exception.RecursoNaoEncontradoException;
+import com.vitorM.CRM.model.Oportunidade;
 import com.vitorM.CRM.model.Papel;
 import com.vitorM.CRM.model.Usuario;
 import com.vitorM.CRM.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UsuarioService {
 
+    private final OportunidadeRepository oportunidadeRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -121,5 +127,43 @@ public class UsuarioService {
         usuario.setPapeis(dto.getPapeis());
         usuario.setAtivo(dto.isAtivo());
         return usuario;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UsuarioDTO> listarPaginado(Pageable pageable) {
+        return usuarioRepository.findAll(pageable)
+                .map(this::converterParaDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OportunidadeDTO> listarOportunidadesPorUsuario(Long usuarioId) {
+        List<Oportunidade> oportunidades = oportunidadeRepository.findByUsuarioId(usuarioId);
+
+        return oportunidades.stream()
+                .map(this::converterOportunidadeParaDTO)
+                .collect(Collectors.toList());
+    }
+
+    private OportunidadeDTO converterOportunidadeParaDTO(Oportunidade oportunidade) {
+        OportunidadeDTO dto = new OportunidadeDTO();
+
+        dto.setId(oportunidade.getId());
+        dto.setTitulo(oportunidade.getTitulo());
+        dto.setDescricao(oportunidade.getDescricao());
+        dto.setValor(oportunidade.getValor());
+        dto.setStatus(oportunidade.getStatus());
+        dto.setDataFechamentoPrevista(oportunidade.getDataFechamentoPrevista());
+        dto.setDataFechamentoReal(oportunidade.getDataFechamentoReal());
+
+        if (oportunidade.getCliente() != null) {
+            dto.setClienteId(oportunidade.getCliente().getId());
+            dto.setNomeCliente(oportunidade.getCliente().getNome());
+        }
+
+        if (oportunidade.getUsuario() != null) {
+            dto.setUsuarioId(oportunidade.getUsuario().getId());
+            dto.setNomeUsuario(oportunidade.getUsuario().getNome());
+        }
+        return dto;
     }
 }
